@@ -42,15 +42,7 @@ jobs:
           sudo apt-get install -y devscripts equivs config-package-dev debhelper-compat golang curl
           
           cd external/android-cuttlefish
-          
-          for dir in base; do
-            pushd $dir
-            # Install build dependencies
-            sudo mk-build-deps -i -r -t "apt-get -y" debian/control
-            # Build the package
-            dpkg-buildpackage -uc -us
-            popd
-          done
+          tools/buildutils/build_packages.sh
           
           mkdir -p ~/cuttlefish-packages
           cp cuttlefish-base_*_*64.deb ~/cuttlefish-packages/
