@@ -38,12 +38,22 @@ jobs:
       - name: Build Cuttlefish packages
         if: steps.cache-cf-packages.outputs.cache-hit != 'true'
         run: |
-          sudo apt-get update
           export DEBIAN_FRONTEND=noninteractive
+          sudo apt-get update
           
-          cd external/android-cuttlefish
-          tools/buildutils/build_packages.sh
+          # Install build dependencies from debian/control
+          sudo apt-get install -y \
+            bazel cmake config-package-dev debhelper-compat git \
+            libaom-dev libclang-dev libcurl4-openssl-dev libfmt-dev \
+            libgflags-dev libgoogle-glog-dev libgtest-dev libjsoncpp-dev \
+            liblzma-dev libopus-dev libprotobuf-c-dev libprotobuf-dev \
+            libsrtp2-dev libssl-dev libtinfo5 libxml2-dev libz3-dev \
+            pkgconf protobuf-compiler uuid-dev xxd
           
+          cd external/android-cuttlefish/base
+          dpkg-buildpackage -uc -us -b
+          
+          cd ..
           mkdir -p ~/cuttlefish-packages
           cp cuttlefish-base_*_*64.deb ~/cuttlefish-packages/
 
