@@ -7,12 +7,6 @@ on:
     branches: [ main ]
   workflow_dispatch:
 
-env:
-  CUTTLEFISH_VERSION: v1.32.0
-  ANDROID_BRANCH: aosp-android-latest-release
-  ANDROID_DEVICE: aosp_cf_x86_64_only_phone
-  CF_HOME: ~/cuttlefish
-
 jobs:
   boot-cuttlefish:
     runs-on: ubuntu-latest
@@ -20,80 +14,13 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Add Android SDK to PATH
-        run: echo "$ANDROID_HOME/platform-tools" >> $GITHUB_PATH
-
-      - name: Cache Cuttlefish packages
-        id: cache-cf-packages
-        uses: actions/cache@v4
-        with:
-          path: ~/cuttlefish-packages
-          key: cf-packages-${{ env.CUTTLEFISH_VERSION }}
-
-      - name: Download Cuttlefish packages
-        if: steps.cache-cf-packages.outputs.cache-hit != 'true'
-        run: |
-          RUN_ID=$(gh run list --repo google/android-cuttlefish --workflow .github/workflows/main.yml \
-            --json databaseId,headBranch,status \
-            --jq ".[] | select(.headBranch == \"${{ env.CUTTLEFISH_VERSION }}\") | select(.status == \"completed\") | .databaseId" \
-            | head -1)
-          
-          mkdir -p ~/cuttlefish-packages
-          cd ~/cuttlefish-packages
-          gh run download $RUN_ID --repo google/android-cuttlefish --name debs_amd64
-          tar -xf debs_amd64.tar
-        env:
-          GH_TOKEN: ${{ github.token }}
-
-      - name: Install Cuttlefish
-        run: |
-          sudo apt-get update
-          sudo dpkg -i ~/cuttlefish-packages/cuttlefish-base_*_*64.deb || sudo apt-get install -f -y
-          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
-          sudo udevadm control --reload-rules && sudo udevadm trigger
-          sudo usermod -aG kvm,cvdnetwork,render $USER
-
-      - name: Get Android build ID
-        id: build-id
-        run: |
-          TARGET="${{ env.ANDROID_DEVICE }}-userdebug"
-          BUILD_ID=$(curl -sL "https://ci.android.com/builds/branches/${{ env.ANDROID_BRANCH }}/status.json" | \
-            jq -r ".targets[] | select(.name == \"$TARGET\") | .last_known_good_build")
-          echo "BUILD_ID=$BUILD_ID" >> $GITHUB_OUTPUT
-          echo "BUILD_ID=$BUILD_ID" >> $GITHUB_ENV
-
-      - name: Cache Android images
-        id: cache-images
-        uses: actions/cache@v4
-        with:
-          path: ~/cuttlefish-downloads
-          key: android-images-${{ steps.build-id.outputs.BUILD_ID }}
-
-      - name: Download Android images
-        if: steps.cache-images.outputs.cache-hit != 'true'
-        run: |
-          TARGET="${{ env.ANDROID_DEVICE }}-userdebug"
-          BASE_URL="https://ci.android.com/builds/submitted/${BUILD_ID}/${TARGET}/latest/raw"
-          
-          mkdir -p ~/cuttlefish-downloads
-          curl -L "${BASE_URL}/${{ env.ANDROID_DEVICE }}-img-${BUILD_ID}.zip" -o ~/cuttlefish-downloads/system-img.zip
-          curl -L "${BASE_URL}/cvd-host_package.tar.gz" -o ~/cuttlefish-downloads/host-package.tar.gz
-
       - name: Setup Cuttlefish
-        run: |
-          mkdir -p ${{ env.CF_HOME }}
-          tar xzf ~/cuttlefish-downloads/host-package.tar.gz -C ${{ env.CF_HOME }}
-          unzip -q ~/cuttlefish-downloads/system-img.zip -d ${{ env.CF_HOME }}
-
-      - name: Start emulator
-        run: |
-          sg kvm -c "sg cvdnetwork -c 'HOME=${{ env.CF_HOME }} ${{ env.CF_HOME }}/bin/launch_cvd \
-            -daemon -enable_sandbox=false -memory_mb=8192 -cpus=$(nproc) -report_anonymous_usage_stats=n'"
-          
-          adb wait-for-device
-          
-          timeout 600 bash -c 'until [ "$(adb shell getprop sys.boot_completed 2>/dev/null | tr -d "\r")" = "1" ]; do sleep 5; done'
-          echo "Emulator ready!"
+        uses: ./.github/actions/setup-cuttlefish
+        with:
+          cuttlefish-version: v1.32.0
+          android-branch: aosp-android-latest-release
+          android-device: aosp_cf_x86_64_only_phone
+          memory-mb: 8192
 
       - name: Capture screenshot
         run: |
@@ -113,4 +40,4 @@ jobs:
 
       - name: Stop emulator
         if: always()
-        run: sg kvm -c "sg cvdnetwork -c 'HOME=${{ env.CF_HOME }} ${{ env.CF_HOME }}/bin/stop_cvd'" || true
+        run: sg kvm -c "sg cvdnetwork -c 'HOME=$HOME/cuttlefish $HOME/cuttlefish/bin/stop_cvd'" || true
