@@ -30,6 +30,8 @@ jobs:
           echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
           sudo udevadm control --reload-rules
           sudo udevadm trigger
+          
+          # Add user to groups
           sudo usermod -aG kvm,cvdnetwork,render $USER
 
       - name: Setup Android SDK tools
@@ -78,13 +80,14 @@ jobs:
       - name: Launch Cuttlefish emulator
         run: |
           # Launch Cuttlefish with reasonable settings for CI
-          HOME=$CF_HOME $CF_HOME/bin/launch_cvd \
+          # Use sg to run with proper group permissions
+          sg kvm -c "sg cvdnetwork -c 'HOME=$CF_HOME $CF_HOME/bin/launch_cvd \
             -daemon \
             -enable_sandbox=false \
             -memory_mb=8192 \
             -cpus=$(nproc) \
             -report_anonymous_usage_stats=n \
-            -resume=false
+            -resume=false'"
           
           # Wait for device to boot
           echo "Waiting for device to boot..."
@@ -118,4 +121,4 @@ jobs:
       - name: Stop Cuttlefish emulator
         if: always()
         run: |
-          HOME=$CF_HOME $CF_HOME/bin/stop_cvd || true
+          sg kvm -c "sg cvdnetwork -c 'HOME=$CF_HOME $CF_HOME/bin/stop_cvd'" || true
