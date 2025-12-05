@@ -160,6 +160,19 @@ jobs:
           echo ""
           echo "Device list:"
           adb devices -l
+          
+          echo ""
+          echo "Taking screenshot..."
+          mkdir -p screenshots
+          adb exec-out screencap -p > screenshots/emulator-screenshot.png
+
+      - name: Upload screenshot
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: emulator-screenshot
+          path: screenshots/emulator-screenshot.png
+          retention-days: 30
 
       - name: Stop Cuttlefish emulator
         if: always()
