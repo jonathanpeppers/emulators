@@ -49,7 +49,7 @@ jobs:
             liblzma-dev libopus-dev libprotobuf-c-dev libprotobuf-dev \
             libsrtp2-dev libssl-dev libxml2-dev libz3-dev \
             pkgconf protobuf-compiler uuid-dev xxd \
-            libfreetype-dev
+            libfreetype-dev libncurses5
           
           cd external/android-cuttlefish
           
