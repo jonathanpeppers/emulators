@@ -41,9 +41,9 @@ jobs:
           export DEBIAN_FRONTEND=noninteractive
           sudo apt-get update
           
-          # Install build dependencies from debian/control (excluding bazel and libtinfo5)
+          # Install build dependencies from debian/control
           sudo apt-get install -y \
-            cmake config-package-dev debhelper-compat git \
+            build-essential cmake config-package-dev debhelper-compat git \
             libaom-dev libclang-dev libcurl4-openssl-dev libfmt-dev \
             libgflags-dev libgoogle-glog-dev libgtest-dev libjsoncpp-dev \
             liblzma-dev libopus-dev libprotobuf-c-dev libprotobuf-dev \
@@ -56,7 +56,8 @@ jobs:
           sudo tools/buildutils/installbazel.sh
           
           cd base
-          dpkg-buildpackage -uc -us -b
+          # Use -d flag to skip dependency checks since we manually installed them
+          dpkg-buildpackage -d -uc -us -b
           
           cd ..
           mkdir -p ~/cuttlefish-packages
