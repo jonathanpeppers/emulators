@@ -39,7 +39,7 @@ jobs:
         if: steps.cache-cf-packages.outputs.cache-hit != 'true'
         run: |
           sudo apt-get update
-          sudo apt-get install -y devscripts equivs config-package-dev debhelper-compat golang curl
+          export DEBIAN_FRONTEND=noninteractive
           
           cd external/android-cuttlefish
           tools/buildutils/build_packages.sh
