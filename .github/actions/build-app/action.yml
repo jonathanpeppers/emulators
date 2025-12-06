@@ -1,0 +1,31 @@
+name: Build App
+description: Build and optionally run the MAUI Android app
+
+inputs:
+  project-path:
+    description: 'Path to the project or solution file'
+    required: false
+    default: 'MyMauiApp/MyMauiApp.csproj'
+  configuration:
+    description: 'Build configuration (Debug/Release)'
+    required: false
+    default: 'Debug'
+  run:
+    description: 'Run the app on connected device/emulator'
+    required: false
+    default: 'false'
+
+runs:
+  using: composite
+  steps:
+    - name: Build Android app
+      if: inputs.run != 'true'
+      shell: bash
+      run: dotnet build ${{ inputs.project-path }} -c ${{ inputs.configuration }} -f net10.0-android
+
+    - name: Build and run Android app
+      if: inputs.run == 'true'
+      shell: bash
+      run: |
+        dotnet build ${{ inputs.project-path }} -c ${{ inputs.configuration }} -f net10.0-android -t:Run
+        sleep 10

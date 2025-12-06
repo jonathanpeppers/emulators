@@ -19,6 +19,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Setup .NET
+        uses: ./.github/actions/setup-dotnet
+
       - name: Setup Cuttlefish
         uses: ./.github/actions/setup-cuttlefish
         with:
@@ -26,3 +29,9 @@ jobs:
           android-branch: aosp-android-latest-release
           android-device: aosp_cf_x86_64_only_phone
           memory-mb: 8192
+
+      - name: Build app
+        uses: ./.github/actions/build-app
+        continue-on-error: true
+        with:
+          configuration: Debug

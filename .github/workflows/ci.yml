@@ -14,6 +14,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Setup .NET
+        uses: ./.github/actions/setup-dotnet
+
       - name: Setup Cuttlefish
         uses: ./.github/actions/setup-cuttlefish
         with:
@@ -22,10 +25,16 @@ jobs:
           android-device: aosp_cf_x86_64_only_phone
           memory-mb: 8192
 
-      - name: Capture screenshot
+      - name: Build and run app
+        uses: ./.github/actions/build-app
+        with:
+          configuration: Debug
+          run: 'true'
+
+      - name: Capture app screenshot
         run: |
           mkdir -p screenshots
-          adb exec-out screencap -p > screenshots/emulator-screenshot.png
+          adb exec-out screencap -p > screenshots/maui-app-screenshot.png
           echo "Device info:"
           adb shell getprop ro.build.version.release
           adb shell getprop ro.product.model
@@ -34,8 +43,8 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: emulator-screenshot
-          path: screenshots/emulator-screenshot.png
+          name: maui-app-screenshot
+          path: screenshots/maui-app-screenshot.png
           retention-days: 30
 
       - name: Stop emulator

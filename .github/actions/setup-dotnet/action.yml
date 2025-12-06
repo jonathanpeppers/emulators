@@ -1,0 +1,20 @@
+name: Setup .NET
+description: Set up .NET SDK and install MAUI Android workload
+
+inputs:
+  dotnet-version:
+    description: '.NET SDK version to install'
+    required: false
+    default: '10.0.x'
+
+runs:
+  using: composite
+  steps:
+    - name: Setup .NET SDK
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: ${{ inputs.dotnet-version }}
+
+    - name: Install MAUI Android workload
+      shell: bash
+      run: dotnet workload install maui-android
