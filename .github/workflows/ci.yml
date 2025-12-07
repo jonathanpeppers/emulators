@@ -14,9 +14,6 @@ jobs:
       fail-fast: false
       matrix:
         android-branch:
-          - aosp-android11-gsi           # API 30
-          - aosp-android12-gsi           # API 31-32
-          - aosp-android13-gsi           # API 33
           - aosp-android14-gsi           # API 34
           - aosp-android-latest-release  # API 36-36.1
     
