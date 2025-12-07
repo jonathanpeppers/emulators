@@ -92,6 +92,7 @@ runs:
           jq -r ".targets[] | select(.name == \"$TARGET\") | .last_known_good_build")
         echo "BUILD_ID=$BUILD_ID" >> $GITHUB_OUTPUT
         echo "BUILD_ID=$BUILD_ID" >> $GITHUB_ENV
+        echo "BRANCH=$BRANCH" >> $GITHUB_OUTPUT
         echo "CF_HOME=$HOME/cuttlefish" >> $GITHUB_ENV
 
     - name: Cache Android images
@@ -99,7 +100,7 @@ runs:
       uses: actions/cache@v4
       with:
         path: ~/cuttlefish-downloads
-        key: android-images-${{ steps.build-id.outputs.BUILD_ID }}
+        key: android-images-${{ steps.build-id.outputs.BRANCH }}-${{ steps.build-id.outputs.BUILD_ID }}
 
     - name: Download Android images
       if: steps.cache-images.outputs.cache-hit != 'true'
