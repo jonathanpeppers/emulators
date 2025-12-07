@@ -33,7 +33,7 @@ Sets up and starts the Cuttlefish emulator. Located at `.github/actions/setup-cu
 - `cuttlefish-version` (optional, default: `v1.32.0`) - Cuttlefish version tag
 - `android-branch` (optional, default: `aosp-android-latest-release`) - Android branch to download
 - `android-device` (optional, default: `aosp_cf_x86_64_only_phone`) - Android device type
-- `memory-mb` (optional, default: `8192`) - Memory allocation in MB
+- `memory-mb` (optional, default: `4096`) - Memory allocation in MB
 - `cpus` (optional, default: `0` = all available) - Number of CPUs to allocate
 
 **Outputs:**
@@ -47,7 +47,7 @@ Sets up and starts the Cuttlefish emulator. Located at `.github/actions/setup-cu
     cuttlefish-version: v1.32.0
     android-branch: aosp-android-latest-release
     android-device: aosp_cf_x86_64_only_phone
-    memory-mb: 8192
+    memory-mb: 4096
 ```
 
 ### stop-cuttlefish
